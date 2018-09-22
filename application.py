@@ -41,7 +41,7 @@ def query_thread(id):
     replies = []
     for rep in query:
         subreplies = []
-        query_subreply = Floor.select().where(Reply.id == rep.reply.id)
+        query_subreply = Floor.select().where(Floor.root_reply == rep.reply.id)
         for subrep in query_subreply:
             subreply = {
                 'id': subrep.sub_reply.id,
