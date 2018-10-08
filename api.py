@@ -53,8 +53,23 @@ def get_thread_detail():
 @app.route('/reply_to_thread', methods=['POST'])
 def reply_thread():
     data = json.loads(request.get_data(as_text=True))
-    reply_to_thread(data['root_id'], data['username'], data['message'])
-    return json.dumps({})
+    return json.dumps(reply_to_thread(data['root_id'], data['username'], data['message'])[1])
+
+
+@app.route('/reply_to_reply', methods=['POST'])
+def reply_floor():
+    data = json.loads(request.get_data(as_text=True))
+    return json.dumps({"subreplies": reply_to_floor(data['root_thread'], data['root_id'], data['parent_id'], data['username'], data['message'])})
+
+
+@app.route('/subreps', methods=['POST'])
+def get_subreps():
+    data = json.loads(request.get_data(as_text=True))
+    subreps = {
+        "floor": query_subreps(data['floor_id'])
+    }
+    print(type(subreps))
+    return json.dumps(subreps)
 
 
 if __name__ == '__main__':

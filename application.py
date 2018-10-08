@@ -40,27 +40,14 @@ def query_thread(id):
     query = Thread.select().where(Thread.root_thread == id)
     replies = []
     for rep in query:
-        subreplies = []
         query_subreply = Floor.select().where(Floor.root_reply == rep.reply.id)
-        for subrep in query_subreply:
-            subreply = {
-                'id': subrep.sub_reply.id,
-                'root': subrep.sub_reply.root,
-                'parent': subrep.sub_reply.parent,
-                'username': subrep.sub_reply.username,
-                'message': subrep.sub_reply.message,
-                'time': subrep.sub_reply.time,
-                'parent_name': SubReply.get(id == subrep.sub_reply.id).username
-            }
-            subreplies.append(subreply)
-
         reply = {
             'id': rep.reply.id,
             'username': rep.reply.username,
             'message': rep.reply.message,
             'root': rep.reply.root,
             'time': rep.reply.time,
-            'subreplies': subreplies
+            'count': query_subreply.count()
         }
         print(rep.reply.id, rep.reply.username, rep.reply.message, rep.reply.root, rep.reply.time)
         replies.append(json.dumps(reply))
@@ -85,6 +72,7 @@ def reply_to_thread(root_id, username, message):
     forum_instance = Forum().get(id=root_id)
     forum_instance.last_reply = current_time
     forum_instance.save()
+    return query_thread(root_id)
 
 
 def reply_to_floor(root_thread, root_id, parent_id, username, message):
@@ -95,6 +83,28 @@ def reply_to_floor(root_thread, root_id, parent_id, username, message):
     forum_instance = Forum().get(id=root_thread)
     forum_instance.last_reply = current_time
     forum_instance.save()
+    return query_subreps(root_id)
+
+
+def query_subreps(floor_id):
+    query_subreply = Floor.select().where(Floor.root_reply == floor_id)
+    subreps = []
+    for subrep in query_subreply:
+        print(subrep.sub_reply.parent)
+        parent_name = ''
+        if subrep.sub_reply.parent != -1:
+            parent_name = SubReply.get(id=subrep.sub_reply.parent).username
+        subreply = {
+            'id': subrep.sub_reply.id,
+            'root': subrep.sub_reply.root.id,
+            'parent': subrep.sub_reply.parent,
+            'username': subrep.sub_reply.username,
+            'message': subrep.sub_reply.message,
+            'time': subrep.sub_reply.time,
+            'parent_name': parent_name
+        }
+        subreps.append(subreply)
+    return subreps
 
 
 if __name__ == '__main__':
